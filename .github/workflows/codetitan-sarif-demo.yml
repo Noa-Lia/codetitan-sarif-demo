@@ -13,20 +13,39 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Restore CodeTitan runtime cache
+        uses: actions/cache@v4
         with:
-          node-version: 20
+          path: .codetitan-action-runtime
+          key: ${{ runner.os }}-codetitan-action-${{ hashFiles('package.json', '.github/workflows/codetitan-sarif-demo.yml') }}
 
-      - name: Generate CodeTitan demo SARIF
-        run: node generate-sarif.mjs
+      - name: Run CodeTitan
+        id: codetitan
+        uses: Noa-Lia/codetitan-action@main
+        with:
+          path: .
+          fail-on-severity: CRITICAL
+          format: both
+          runtime-root: .codetitan-action-runtime
+          comment-on-pr: false
+
+      - name: Upload CodeTitan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: codetitan-public-demo-report
+          path: |
+            ${{ steps.codetitan.outputs.report-path }}
+            ${{ steps.codetitan.outputs.summary-path }}
+            ${{ steps.codetitan.outputs.sarif-path }}
 
       - name: Upload SARIF to GitHub code scanning
+        if: steps.codetitan.outputs.sarif-path != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: codetitan-report.sarif
+          sarif_file: ${{ steps.codetitan.outputs.sarif-path }}

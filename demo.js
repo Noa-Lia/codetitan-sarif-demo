@@ -1,7 +1,7 @@
-const demoApiKey = "sk-demo-not-real-codetitan-sarif-check";
+const apiKey = "super-secret-token-12345";
 
 export function getDemoKey() {
-  return demoApiKey;
+  return apiKey;
 }
 
 console.log(getDemoKey());

@@ -1,1 +1,6 @@
+codetitan-report.json
 codetitan-report.sarif
+codetitan-summary.md
+.codetitan-action-runtime/
+local-report.json
+repo-check.json

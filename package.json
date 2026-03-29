@@ -2,9 +2,6 @@
   "name": "codetitan-sarif-demo",
   "private": true,
   "version": "1.0.0",
-  "description": "Minimal public SARIF demo for CodeTitan GitHub code scanning tests",
-  "license": "MIT",
-  "scripts": {
-    "generate:sarif": "node generate-sarif.mjs"
-  }
+  "description": "Minimal public repo that runs the real CodeTitan GitHub Action and uploads SARIF to GitHub code scanning",
+  "license": "MIT"
 }
