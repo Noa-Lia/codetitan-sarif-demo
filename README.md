@@ -3,7 +3,7 @@
 Minimal public demo repo for proving the real public CodeTitan GitHub Action on a public GitHub repository.
 
 What this repo proves:
-- the public `Noa-Lia/codetitan-action@main` action runs on GitHub-hosted runners
+- the public `Noa-Lia/codetitan-action@v1` action runs on GitHub-hosted runners
 - CodeTitan can surface a real MVP finding from a public JS file
 - GitHub code scanning can ingest the SARIF emitted by the action
 - Alerts appear against a real file in a public repository

@@ -27,7 +27,7 @@ jobs:
 
       - name: Run CodeTitan
         id: codetitan
-        uses: Noa-Lia/codetitan-action@main
+        uses: Noa-Lia/codetitan-action@v1
         with:
           path: .
           fail-on-severity: CRITICAL
