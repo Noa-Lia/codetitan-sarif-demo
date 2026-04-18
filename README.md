@@ -1,34 +1,51 @@
-# CodeTitan SARIF Demo
+# CodeTitan Security Scan — Demo
 
-Minimal public demo repo for proving the real public CodeTitan GitHub Action on a public GitHub repository.
+This repo demonstrates CodeTitan's diff-aware PR scanning surface. It contains realistic patterns of the kind CodeTitan is designed to catch — no synthetic "password=12345" vulns.
 
-What this repo proves:
-- the public `Noa-Lia/codetitan-action@v1` action runs on GitHub-hosted runners
-- CodeTitan can surface a real MVP finding from a public JS file
-- GitHub code scanning can ingest the SARIF emitted by the action
-- Alerts appear against a real file in a public repository
+## What you'll see on the open PR
 
-What this repo does not prove:
-- the private `codetitan.dev` monorepo
-- a public CLI install path
-- automatic remediation inside GitHub Actions
+Open the [`add-tenable-integration`](../../pulls) PR. CodeTitan runs automatically and posts an inline comment listing what it found in the diff:
 
-## Files
+- **CRITICAL** — `withCredentials: true` in `src/clients/tenable.ts` without an origin whitelist. Any page the user visits can make authenticated cross-origin requests to Tenable using their stored session. Standard CSRF vector.
+- **HIGH** — `jwt.sign()` in `src/auth/api-keys.ts` with no `expiresIn`. API keys issued here never expire — a compromised key is valid forever.
+- **HIGH** — `path.join(process.argv[2], file)` in `scripts/convert-findings.js`. Raw CLI argv flows into a file path with no bounds check. `../../../etc/passwd` is a valid input.
 
-- `demo.js`: a tiny JS file with an intentionally fake hardcoded secret
-- `.github/workflows/codetitan-sarif-demo.yml`: runs the real CodeTitan public action and uploads SARIF
+CodeTitan only scans the changed files in the PR diff — it won't flag existing code that wasn't touched.
 
-## How To Use
+## What this proves
 
-1. Push to `main` or `master`.
-2. Open the `Actions` tab and run `CodeTitan SARIF Demo`.
-3. Open the `Security` or `Code scanning` tab and confirm the alert appears.
+- `Noa-Lia/codetitan-action@v1` runs on GitHub-hosted `ubuntu-latest` runners
+- Diff-aware mode activates on `pull_request` events and scans only changed surface
+- PR comments appear inline on the PR with severity, file, line, and explanation
+- SARIF uploads to GitHub Code Scanning for persistent alert tracking
 
-## Expected Result
+## What this does not show
 
-The workflow uploads one `HARDCODED_SECRET` alert pointing at `demo.js` while still passing the workflow, because the gate is set to `CRITICAL`.
+Learned-profile signal and PR Risk Score require ~50 PRs of repo history to calibrate. This demo shows the detection surface. The learning moat activates on a real repo after weeks of use.
 
-## Notes
+## Add it to your own repo
 
-- The secret in `demo.js` is fake and only exists to create a visible alert.
-- The workflow caches the packed runtime under `.codetitan-action-runtime` so repeat runs are faster.
+```yaml
+# .github/workflows/codetitan.yml
+name: CodeTitan Security Scan
+
+on:
+  pull_request:
+
+jobs:
+  codetitan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Noa-Lia/codetitan-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+No account or API key needed. The engine runs entirely in your CI.
+
+Full docs: [codetitan.dev](https://codetitan.dev)
