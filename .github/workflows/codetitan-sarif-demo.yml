@@ -1,4 +1,4 @@
-name: CodeTitan SARIF Demo
+name: CodeTitan Security Scan
 
 on:
   workflow_dispatch:
@@ -6,9 +6,10 @@ on:
     branches:
       - main
       - master
+  pull_request:
 
 jobs:
-  codetitan-sarif:
+  codetitan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -23,7 +24,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .codetitan-action-runtime
-          key: ${{ runner.os }}-codetitan-action-${{ hashFiles('package.json', '.github/workflows/codetitan-sarif-demo.yml') }}
+          key: ${{ runner.os }}-codetitan-${{ hashFiles('.github/workflows/codetitan-sarif-demo.yml') }}
 
       - name: Run CodeTitan
         id: codetitan
@@ -33,15 +34,14 @@ jobs:
           fail-on-severity: CRITICAL
           format: both
           runtime-root: .codetitan-action-runtime
-          comment-on-pr: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload CodeTitan reports
+      - name: Upload CodeTitan report
         uses: actions/upload-artifact@v4
         with:
-          name: codetitan-public-demo-report
+          name: codetitan-report
           path: |
             ${{ steps.codetitan.outputs.report-path }}
-            ${{ steps.codetitan.outputs.summary-path }}
             ${{ steps.codetitan.outputs.sarif-path }}
 
       - name: Upload SARIF to GitHub code scanning
